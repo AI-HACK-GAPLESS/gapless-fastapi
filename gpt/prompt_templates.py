@@ -7,7 +7,6 @@ class PromptTemplates:
             {
                 "input": {
                     "question": "What is a closure in JavaScript?",
-                    "category": "frontend"
                 },
                 "output": {
                     "term": "Closure",
@@ -18,7 +17,6 @@ class PromptTemplates:
             {
                 "input": {
                     "question": "What is REST API?",
-                    "category": "backend"
                 },
                 "output": {
                     "term": "REST API",
@@ -62,8 +60,8 @@ class PromptTemplates:
         
         # 초기 QA를 위한 프롬프트 템플릿
         self.qa_prompt = PromptTemplate(
-            input_variables=["context", "question", "category", "few_shot_examples"],
-            template="""You are an expert in {category} development. Use the following context to answer the question.
+            input_variables=["context", "question", "few_shot_examples"],
+            template="""You are an expert in  development. Use the following context to answer the question.
 Context: {context}
 Question: {question}
 
@@ -83,7 +81,7 @@ Response:"""
         # 추가 질문을 위한 프롬프트 템플릿
         self.additional_query_prompt = PromptTemplate(
             input_variables=["previous_answer", "additional_request", "category", "few_shot_examples"],
-            template="""You are an expert in {category} development. A user has asked for additional information about a previous answer.
+            template="""You are an expert in development. A user has asked for additional information about a previous answer.
 Previous answer: {previous_answer}
 Additional request: {additional_request}
 
