@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from models.explain import ExplainRequest
+from models.explain import ExplainRequest, ExplainResponse
 
 router = APIRouter()
 
@@ -10,4 +10,4 @@ async def explain_text(request: ExplainRequest):
 
     # 여기에 설명 로직을 추가합니다.
 
-    return ExplainRequest(explanation=text)
+    return ExplainResponse(explanation=text)
