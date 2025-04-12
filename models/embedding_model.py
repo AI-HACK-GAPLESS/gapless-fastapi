@@ -19,5 +19,13 @@ class EmbeddingModel:
             dimensions=1536
         )
 
-    def get_embeddings(self):
-        return self.model 
+    def get_embeddings(self, texts):
+        """텍스트 리스트에 대한 임베딩을 생성합니다.
+        
+        Args:
+            texts (list): 임베딩을 생성할 텍스트 리스트
+            
+        Returns:
+            list: 생성된 임베딩 리스트
+        """
+        return self.model.embed_documents(texts) 

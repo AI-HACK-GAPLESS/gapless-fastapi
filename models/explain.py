@@ -1,6 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+class Explanation(BaseModel):
+    """설명 정보를 담는 모델"""
+    term: str
+    definition: str
+    example: str
+
 class ExplainRequest(BaseModel):
-    text: str = Field(..., description="설명할 텍스트")
+    """설명 요청을 담는 모델"""
+    text: str
+    category: str
 
 class ExplainResponse(BaseModel):
-    explanation: str = Field(..., description="설명된 텍스트")
+    """설명 응답을 담는 모델"""
+    explanation: Explanation

@@ -10,7 +10,7 @@ class AdditionalQuerySystem:
         self.model = GPTModel().get_model()
         self.prompt_templates = PromptTemplates()
         
-    def process_additional_query(self, previous_answer: dict, additional_request: str, category: str) -> dict:
+    def process_additional_query(self, previous_answer: dict, additional_request: str,) -> dict:
         #추가 질문 처리
         # 프롬프트 템플릿과 few-shot 예시 가져오기
         prompt_template = self.prompt_templates.get_additional_query_prompt()
@@ -26,7 +26,6 @@ class AdditionalQuerySystem:
         prompt = prompt_template.format(
             previous_answer=json.dumps(previous_answer, indent=2),
             additional_request=additional_request,
-            category=category,
             few_shot_examples=formatted_examples
         )
         
