@@ -1,16 +1,35 @@
 from langchain.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
-import json
 
-class AdditionalQuerySystem:
+class PromptTemplates:
     def __init__(self):
-        self.model = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            temperature=0.7
-        )
+        # 초기 QA를 위한 few-shot examples
+        self.qa_few_shot_examples = [
+            {
+                "input": {
+                    "question": "What is a closure in JavaScript?",
+                    "category": "frontend"
+                },
+                "output": {
+                    "term": "Closure",
+                    "definition": "A closure is a function that has access to variables from its outer scope, even after the outer function has returned.",
+                    "example": "function outer() {\n  let count = 0;\n  return function inner() {\n    count++;\n    return count;\n  };\n}\nlet counter = outer();\nconsole.log(counter()); // 1\nconsole.log(counter()); // 2"
+                }
+            },
+            {
+                "input": {
+                    "question": "What is REST API?",
+                    "category": "backend"
+                },
+                "output": {
+                    "term": "REST API",
+                    "definition": "REST (Representational State Transfer) is an architectural style for designing networked applications.",
+                    "example": "GET /api/users - Retrieve all users\nPOST /api/users - Create a new user"
+                }
+            }
+        ]
         
-        # Few-shot examples for additional queries
-        self.few_shot_examples = [
+        # 추가 질문을 위한 few-shot examples
+        self.additional_query_few_shot_examples = [
             {
                 "input": {
                     "previous_answer": {
@@ -41,8 +60,28 @@ class AdditionalQuerySystem:
             }
         ]
         
-        # Prompt template for additional queries
-        self.prompt_template = PromptTemplate(
+        # 초기 QA를 위한 프롬프트 템플릿
+        self.qa_prompt = PromptTemplate(
+            input_variables=["context", "question", "category", "few_shot_examples"],
+            template="""You are an expert in {category} development. Use the following context to answer the question.
+Context: {context}
+Question: {question}
+
+Here are some examples of how to answer questions:
+{few_shot_examples}
+
+Please provide a clear and concise answer in JSON format with the following structure:
+{{
+    "term": "term name",
+    "definition": "detailed definition",
+    "example": "practical example or code snippet"
+}}
+
+Response:"""
+        )
+        
+        # 추가 질문을 위한 프롬프트 템플릿
+        self.additional_query_prompt = PromptTemplate(
             input_variables=["previous_answer", "additional_request", "category", "few_shot_examples"],
             template="""You are an expert in {category} development. A user has asked for additional information about a previous answer.
 Previous answer: {previous_answer}
@@ -60,32 +99,19 @@ Please provide a more detailed answer that addresses the user's additional reque
 
 Response:"""
         )
-
-    def process_additional_query(self, previous_answer: dict, additional_request: str, category: str) -> dict:
-        # Format few-shot examples
-        formatted_examples = "\n".join([
-            f"Input: {json.dumps(ex['input'], indent=2)}\nOutput: {json.dumps(ex['output'], indent=2)}\n"
-            for ex in self.few_shot_examples
-        ])
-        
-        # Create prompt
-        prompt = self.prompt_template.format(
-            previous_answer=json.dumps(previous_answer, indent=2),
-            additional_request=additional_request,
-            category=category,
-            few_shot_examples=formatted_examples
-        )
-        
-        # Get response from model
-        response = self.model.predict(prompt)
-        
-        try:
-            # Parse JSON response
-            return json.loads(response)
-        except json.JSONDecodeError:
-            # If JSON parsing fails, return a structured error response
-            return {
-                "term": "Error",
-                "definition": "Failed to generate a proper response. Please try rephrasing your request.",
-                "example": ""
-            } 
+    
+    def get_few_shot_examples(self) -> list:
+        """초기 QA를 위한 few-shot 예시 반환"""
+        return self.qa_few_shot_examples
+    
+    def get_additional_query_few_shot_examples(self) -> list:
+        """추가 질문을 위한 few-shot 예시 반환"""
+        return self.additional_query_few_shot_examples
+    
+    def get_qa_prompt(self) -> PromptTemplate:
+        """초기 QA를 위한 프롬프트 템플릿 반환"""
+        return self.qa_prompt
+    
+    def get_additional_query_prompt(self) -> PromptTemplate:
+        """추가 질문을 위한 프롬프트 템플릿 반환"""
+        return self.additional_query_prompt 
