@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from models.explain import ExplainRequest, ExplainResponse, Explanation
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
+from models.extra_explain import ExtraExplainResponse, ExtraExplainRequest
 from prompts.fewshot_prompt import get_explain_prompt
 from utils.output_parser import format_explanation_to_text
 
@@ -46,3 +47,11 @@ async def explain_text(request: ExplainRequest):
             detail=f"Failed to generate explanation: {str(e)}"
         )
 
+@router.post("/explain-more", response_model=ExtraExplainResponse)
+async def explain_more(request: ExtraExplainRequest):
+
+    ## 여기구현
+
+    return ExtraExplainResponse(
+        result = request.result
+    )
