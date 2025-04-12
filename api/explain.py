@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from db.db import get_db
+from crud.keyword import upsert_keyword
 from models.explain import ExplainRequest, ExplainResponse, Explanation
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
@@ -12,8 +15,9 @@ router = APIRouter()
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 @router.post("/explain", response_model=ExplainResponse)
-async def explain_text(request: ExplainRequest):
+async def explain_text(request: ExplainRequest, db: Session = Depends(get_db)):
     text = request.text
+    platform = request.platform
 
     prompt = get_explain_prompt(text)
 
@@ -27,20 +31,16 @@ async def explain_text(request: ExplainRequest):
 
         import json
         parsed = json.loads(content)
-        
+
+        # Extract and store keywords
+        keyword_entries = parsed.get("keywords", [])
+        for entry in keyword_entries:
+            if ":" in entry:
+                keyword_term = entry.split(":")[0].strip()
+                upsert_keyword(db, platform=platform, keyword=keyword_term)
+
         explanation_text = format_explanation_to_text(parsed)
         return ExplainResponse(result=explanation_text)
-
-        # return ExplainResponse(
-        #     explanation=Explanation(
-        #         term=text,
-        #         summary=parsed.get("summary", ""),
-        #         keywords=parsed.get("keywords", [])
-        #     )
-        # )
-        # return ExplainResponse(
-        #     explanation = format_explanation_to_text(parsed)
-        # )
 
     except Exception as e:
         raise HTTPException(
@@ -50,8 +50,6 @@ async def explain_text(request: ExplainRequest):
 
 @router.post("/explain-more", response_model=ExtraExplainResponse)
 async def explain_more(request: ExtraExplainRequest):
-
-    ## 여기구현
     text = request.text
 
     prompt = get_additional_explain_prompt(text, request.result)
@@ -66,27 +64,14 @@ async def explain_more(request: ExtraExplainRequest):
 
         import json
         parsed = json.loads(content)
-        
+
         explanation_text = format_explanation_to_text(parsed)
         return ExtraExplainResponse(
-        result = explanation_text
+            result=explanation_text
         )
-
-        # return ExplainResponse(
-        #     explanation=Explanation(
-        #         term=text,
-        #         summary=parsed.get("summary", ""),
-        #         keywords=parsed.get("keywords", [])
-        #     )
-        # )
-        # return ExplainResponse(
-        #     explanation = format_explanation_to_text(parsed)
-        # )
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate explanation: {str(e)}"
         )
-
-
