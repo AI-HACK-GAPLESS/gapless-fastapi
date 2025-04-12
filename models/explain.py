@@ -7,6 +7,7 @@ class Explanation(BaseModel):
     keywords: List[str]
 
 class ExplainRequest(BaseModel):
+    server_id: str
     platform: Literal["discord", "slack"]
     text: str
 
