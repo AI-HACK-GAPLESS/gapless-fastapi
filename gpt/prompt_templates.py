@@ -2,114 +2,62 @@ from langchain.prompts import PromptTemplate
 
 class PromptTemplates:
     def __init__(self):
-        # 초기 QA를 위한 few-shot examples
-        self.qa_few_shot_examples = [
-            {
-                "input": {
-                    "question": "What is a closure in JavaScript?",
-                },
-                "output": {
-                    "term": "Closure",
-                    "definition": "A closure is a function that has access to variables from its outer scope, even after the outer function has returned.",
-                    "example": "function outer() {\n  let count = 0;\n  return function inner() {\n    count++;\n    return count;\n  };\n}\nlet counter = outer();\nconsole.log(counter()); // 1\nconsole.log(counter()); // 2"
-                }
-            },
-            {
-                "input": {
-                    "question": "What is REST API?",
-                },
-                "output": {
-                    "term": "REST API",
-                    "definition": "REST (Representational State Transfer) is an architectural style for designing networked applications.",
-                    "example": "GET /api/users - Retrieve all users\nPOST /api/users - Create a new user"
-                }
-            }
-        ]
+        """프롬프트 템플릿 초기화"""
+        self.few_shot_examples = """
+        예시 1:
+        텍스트: "Frontend React Component"
+        추출된 단어들: frontend, react, component
         
-        # 추가 질문을 위한 few-shot examples
-        self.additional_query_few_shot_examples = [
-            {
-                "input": {
-                    "previous_answer": {
-                        "term": "Closure",
-                        "definition": "A closure is a function that has access to variables from its outer scope, even after the outer function has returned.",
-                        "example": "function outer() {\n  let count = 0;\n  return function inner() {\n    count++;\n    return count;\n  };\n}\nlet counter = outer();\nconsole.log(counter()); // 1\nconsole.log(counter()); // 2"
-                    },
-                    "additional_request": "information"
-                },
-                "output": {
-                    "term": "Closure Memory Management",
-                    "definition": "Closures maintain references to variables from their outer scope, which keeps these variables in memory even after the outer function has completed execution. This is because the inner function (closure) still has access to these variables.",
-                    "example": "function createClosure() {\n  let largeData = new Array(1000000).fill('data');\n  return function() {\n    return largeData.length;\n  };\n}\n// The largeData array remains in memory as long as the closure exists\nlet closure = createClosure();"
-                }
-            },
-            {
-                "input": {
-                    "previous_answer": {
-                        "term": "REST API",
-                        "definition": "REST (Representational State Transfer) is an architectural style for designing networked applications.",
-                        "example": "GET /api/users - Retrieve all users\nPOST /api/users - Create a new user"
-                    },
-                    "additional_request": "code"
-                },
-                "output": {
-                    "code": "from flask import Flask, request, jsonify\n\napp = Flask(__name__)\n\n# In-memory storage\nusers = []\n\n@app.route('/api/users', methods=['GET'])\ndef get_users():\n    return jsonify(users)\n\n@app.route('/api/users', methods=['POST'])\ndef create_user():\n    user = request.json\n    users.append(user)\n    return jsonify(user), 201\n\nif __name__ == '__main__':\n    app.run(debug=True)"
-                }
-            }
-        ]
+        응답:
+        - Frontend:
+          definition: 웹 애플리케이션의 사용자 인터페이스 부분을 담당하는 영역
+          example: HTML, CSS, JavaScript를 사용하여 웹 페이지를 구성
         
-        # 초기 QA를 위한 프롬프트 템플릿
-        self.qa_prompt = PromptTemplate(
-            input_variables=["context", "question", "few_shot_examples"],
-            template="""You are an expert in  development. Use the following context to answer the question.
-Context: {context}
-Question: {question}
-
-Here are some examples of how to answer questions:
-{few_shot_examples}
-
-Please provide a clear and concise answer in JSON format with the following structure:
-{{
-    "term": "term name",
-    "definition": "detailed definition",
-    "example": "practical example or code snippet"
-}}
-
-Response:"""
-        )
+        - React:
+          definition: Facebook에서 개발한 JavaScript 라이브러리로, 사용자 인터페이스를 구축하기 위한 도구
+          example: const MyComponent = () => { return <div>Hello World</div>; }
         
-        # 추가 질문을 위한 프롬프트 템플릿
-        self.additional_query_prompt = PromptTemplate(
-            input_variables=["previous_answer", "additional_request", "category", "few_shot_examples"],
-            template="""You are an expert in development. A user has asked for additional information about a previous answer.
-Previous answer: {previous_answer}
-Additional request: {additional_request}
-
-Here are some examples of how to handle additional requests:
-{few_shot_examples}
-
-Please provide a more detailed answer that addresses the user's additional request. The response should be in JSON format with the following structure:
-{{
-    "term": "term name",
-    "definition": "detailed definition",
-    "example": "practical example or code snippet"
-}}
-
-Response:"""
-        )
+        - Component:
+          definition: 재사용 가능한 UI 요소의 독립적인 단위
+          example: function Button({ text }) { return <button>{text}</button>; }
+        
+        예시 2:
+        텍스트: "Backend API Database"
+        추출된 단어들: backend, api, database
+        
+        응답:
+        - Backend:
+          definition: 서버 측 로직을 처리하는 애플리케이션의 부분
+          example: Node.js로 서버를 구축하고 Express 프레임워크를 사용
+        
+        - API:
+          definition: 애플리케이션 프로그래밍 인터페이스로, 소프트웨어 간의 통신 방법을 정의
+          example: RESTful API를 통해 클라이언트와 서버가 JSON 데이터를 주고받음
+        
+        - Database:
+          definition: 구조화된 데이터를 저장하고 관리하는 시스템
+          example: MySQL이나 MongoDB를 사용하여 사용자 정보를 저장
+        """
+        
+        self.qa_prompt = """
+        다음 텍스트에서 추출된 각 단어에 대해 설명해주세요:
+        텍스트: {text}
+        추출된 단어들: {terms}
+        
+        컨텍스트 정보:
+        {context}
+        
+        각 단어에 대해 다음 형식으로 답변해주세요:
+        - definition: 단어에 대한 설명
+        - example: 실제 사용 예시
+        
+        모든 단어에 대한 설명과 예시를 하나의 응답으로 합쳐서 주세요.
+        """
     
-    def get_few_shot_examples(self) -> list:
-        """초기 QA를 위한 few-shot 예시 반환"""
-        return self.qa_few_shot_examples
+    def get_few_shot_examples(self):
+        """Few-shot 예시를 반환"""
+        return self.few_shot_examples
     
-    def get_additional_query_few_shot_examples(self) -> list:
-        """추가 질문을 위한 few-shot 예시 반환"""
-        return self.additional_query_few_shot_examples
-    
-    def get_qa_prompt(self) -> PromptTemplate:
-        """초기 QA를 위한 프롬프트 템플릿 반환"""
-        return self.qa_prompt
-    
-    def get_additional_query_prompt(self) -> PromptTemplate:
-        """추가 질문을 위한 프롬프트 템플릿 반환"""
-        return self.additional_query_prompt 
+    def get_qa_prompt(self):
+        """QA 프롬프트를 반환"""
+        return self.qa_prompt 
