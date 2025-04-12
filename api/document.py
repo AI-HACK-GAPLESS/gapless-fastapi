@@ -1,5 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 import shutil, os, json, re
+
+from models.document_data import TermExtractionResponse, TextExtractionRequest
 from rag.rag_utils import extract_term_definitions_from_pdf
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
@@ -8,7 +10,7 @@ router = APIRouter()
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-@router.post("/upload-dict/pdf")
+@router.post("/upload-dict/pdf", response_model=TermExtractionResponse)
 async def extract_terms_from_pdf(file: UploadFile = File(...)):
     file_path = f"./temp_{file.filename}"
     try:
@@ -29,13 +31,10 @@ async def extract_terms_from_pdf(file: UploadFile = File(...)):
             content = content[json_start:]
 
         parsed = json.loads(content)
-        return parsed
+        return {"terms": parsed}  # ✅ 정확하게 감싸서 DTO에 맞게 반환
     except Exception as e:
         print(f"GPT 추출 실패: {e}")
         raise HTTPException(status_code=500, detail="Failed to extract keywords.")
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
     
 
 TERM_EXTRACTION_PROMPT = """
@@ -60,10 +59,9 @@ Return only the JSON list.
 """
 
 
-@router.post("/upload-dict/text")
-async def extract_term_definitions_from_text(text: str) -> list[dict]:
-    prompt = TERM_EXTRACTION_PROMPT + text + "\nReturn only a valid JSON list as shown above. Do not add extra explanations or markdown formatting."
-
+@router.post("/upload-dict/text", response_model=TermExtractionResponse)
+async def extract_term_definitions_from_text(request: TextExtractionRequest):
+    prompt = TERM_EXTRACTION_PROMPT + request.text + "\nReturn only a valid JSON list as shown above. Do not add extra explanations or markdown formatting."
 
     try:
         response = client.chat.completions.create(
@@ -72,14 +70,11 @@ async def extract_term_definitions_from_text(text: str) -> list[dict]:
             temperature=0.3,
         )
         content = response.choices[0].message.content.strip()
-
-        # JSON 시작 부분 추출 (혹시 앞에 이상한 문장이 붙었을 경우 대비)
         json_start = content.find("[")
         if json_start != -1:
             content = content[json_start:]
-
         parsed = json.loads(content)
-        return parsed
+        return {"terms": parsed}
     except Exception as e:
         print(f"GPT 추출 실패: {e}")
         raise HTTPException(status_code=500, detail="Failed to extract keywords.")
