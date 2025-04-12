@@ -4,6 +4,7 @@ from openai import OpenAI
 from core.config import OPENAI_API_KEY
 from models.extra_explain import ExtraExplainResponse, ExtraExplainRequest
 from prompts.fewshot_prompt import get_explain_prompt
+from prompts.fewshot_prompt import get_additional_explain_prompt
 from utils.output_parser import format_explanation_to_text
 
 router = APIRouter()
@@ -18,9 +19,9 @@ async def explain_text(request: ExplainRequest):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.1
+            temperature=0.6
         )
         content = response.choices[0].message.content
 
@@ -28,7 +29,7 @@ async def explain_text(request: ExplainRequest):
         parsed = json.loads(content)
         
         explanation_text = format_explanation_to_text(parsed)
-        return ExplainResponse(text=explanation_text)
+        return ExplainResponse(result=explanation_text)
 
         # return ExplainResponse(
         #     explanation=Explanation(
@@ -51,7 +52,41 @@ async def explain_text(request: ExplainRequest):
 async def explain_more(request: ExtraExplainRequest):
 
     ## 여기구현
+    text = request.text
 
-    return ExtraExplainResponse(
-        result = request.result
-    )
+    prompt = get_additional_explain_prompt(text, request.result)
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.6
+        )
+        content = response.choices[0].message.content
+
+        import json
+        parsed = json.loads(content)
+        
+        explanation_text = format_explanation_to_text(parsed)
+        return ExtraExplainResponse(
+        result = explanation_text
+        )
+
+        # return ExplainResponse(
+        #     explanation=Explanation(
+        #         term=text,
+        #         summary=parsed.get("summary", ""),
+        #         keywords=parsed.get("keywords", [])
+        #     )
+        # )
+        # return ExplainResponse(
+        #     explanation = format_explanation_to_text(parsed)
+        # )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate explanation: {str(e)}"
+        )
+
+
