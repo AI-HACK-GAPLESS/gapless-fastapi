@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from models.explain import ExplainRequest, ExplainResponse, Explanation
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
+from prompts.fewshot_prompt import get_explain_prompt
 
 router = APIRouter()
 
@@ -11,23 +12,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 async def explain_text(request: ExplainRequest):
     text = request.text
 
-    prompt = f"""
-    You are an expert assistant who helps users understand technical IT concepts in simple language.
-
-    Given the following text, do the following two tasks:
-
-    1. Extract a list of important technical keywords (focus on nouns or key terms).
-    2. Summarize the overall meaning of the text in a way that a beginner can understand.
-
-    Text: {text}
-
-    Return your response in **valid JSON format** like below:
-
-    {{
-      "keywords": ["keyword1", "keyword2", "keyword3"],
-      "summary": "a simplified explanation of the whole text"
-    }}
-    """
+    prompt = get_explain_prompt(text)
 
     try:
         response = client.chat.completions.create(
@@ -40,13 +25,27 @@ async def explain_text(request: ExplainRequest):
         import json
         parsed = json.loads(content)
 
-        return ExplainResponse(
-            explanation=Explanation(
-                term=text,
-                summary=parsed.get("summary", ""),
-                keywords=parsed.get("keywords", [])
-            )
-        )
+        def format_explanation_to_text(explanation: dict) -> str:
+            summary = explanation["summary"]
+            keywords = explanation["keywords"]
+
+            keyword_lines = "\n".join(f"- {kw}" for kw in keywords)
+
+            return f"Summary: {summary}\n\nKeywords:\n{keyword_lines}"
+        
+        explanation_text = format_explanation_to_text(parsed)
+        return ExplainResponse(text=explanation_text)
+
+        # return ExplainResponse(
+        #     explanation=Explanation(
+        #         term=text,
+        #         summary=parsed.get("summary", ""),
+        #         keywords=parsed.get("keywords", [])
+        #     )
+        # )
+        # return ExplainResponse(
+        #     explanation = format_explanation_to_text(parsed)
+        # )
 
     except Exception as e:
         raise HTTPException(

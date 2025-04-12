@@ -13,5 +13,6 @@ class ExplainRequest(BaseModel):
     category: str
 
 class ExplainResponse(BaseModel):
-    """설명 응답을 담는 모델"""
-    explanation: Explanation
+    # """설명 응답을 담는 모델"""
+    # explanation: Explanation
+    text: str
