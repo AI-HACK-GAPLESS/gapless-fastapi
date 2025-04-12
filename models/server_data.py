@@ -6,3 +6,7 @@ class ServerCreate(BaseModel):
     server_id: str
     title: str
     description: str
+
+class ServerRequest(BaseModel):
+    server_id: str
+    platform: Literal["discord", "slack"]
