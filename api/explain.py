@@ -3,6 +3,7 @@ from models.explain import ExplainRequest, ExplainResponse, Explanation
 from openai import OpenAI
 from core.config import OPENAI_API_KEY
 from prompts.fewshot_prompt import get_explain_prompt
+from utils.output_parser import format_explanation_to_text
 
 router = APIRouter()
 
@@ -18,20 +19,12 @@ async def explain_text(request: ExplainRequest):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.5
+            temperature=0.1
         )
         content = response.choices[0].message.content
 
         import json
         parsed = json.loads(content)
-
-        def format_explanation_to_text(explanation: dict) -> str:
-            summary = explanation["summary"]
-            keywords = explanation["keywords"]
-
-            keyword_lines = "\n".join(f"- {kw}" for kw in keywords)
-
-            return f"Summary: {summary}\n\nKeywords:\n{keyword_lines}"
         
         explanation_text = format_explanation_to_text(parsed)
         return ExplainResponse(text=explanation_text)
@@ -52,3 +45,4 @@ async def explain_text(request: ExplainRequest):
             status_code=500,
             detail=f"Failed to generate explanation: {str(e)}"
         )
+
