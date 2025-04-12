@@ -10,7 +10,7 @@ class ResponseGenerator:
         self.model = GPTModel().get_model()
         self.prompt_templates = PromptTemplates()
         
-    def generate_response(self, query: str, category: str, context_docs: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def generate_response(self, query: str, context_docs: List[Dict[str, Any]]) -> Dict[str, Any]:
         #사용자 질문에 대한 응답 생성
         # 프롬프트 템플릿에서 few-shot 예시와 QA 프롬프트 가져오기
         few_shot_examples = self.prompt_templates.get_few_shot_examples()
@@ -23,7 +23,6 @@ class ResponseGenerator:
         prompt = qa_prompt.format(
             context=formatted_context,
             question=query,
-            category=category,
             few_shot_examples=few_shot_examples
         )
         
@@ -49,7 +48,7 @@ class ResponseGenerator:
             }
         )
 
-    def generate_response(self, question, category, retrieval_k=4):
+    def generate_response(self, question, retrieval_k=4):
         qa_chain = self.get_qa_chain(retrieval_k)
-        result = qa_chain({"query": question, "category": category})
+        result = qa_chain({"query": question})
         return result["result"], result["source_documents"] 
