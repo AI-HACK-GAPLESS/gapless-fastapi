@@ -1,10 +1,11 @@
+from typing import List
+
 from pydantic import BaseModel
 
 class Explanation(BaseModel):
-    """설명 정보를 담는 모델"""
     term: str
-    definition: str
-    example: str
+    summary: str
+    keywords: List[str]
 
 class ExplainRequest(BaseModel):
     """설명 요청을 담는 모델"""
