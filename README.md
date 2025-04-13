@@ -46,6 +46,9 @@ Navigate to http://localhost:8000/docs to explore and test the available endpoin
 - POST /upload-dict/pdf: Uploads a PDF file containing custom dictionary terms.
 - POST /upload-dict/text: Uploads text input containing custom dictionary terms.
 
+## Swagger API Document
+<img width="1423" alt="image" src="https://github.com/user-attachments/assets/b9adc878-3463-4110-a679-72e57e2c9bb8" />
+
 
 
    
