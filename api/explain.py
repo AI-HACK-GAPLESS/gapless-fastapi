@@ -24,7 +24,7 @@ async def explain_text(request: ExplainRequest, db: Session = Depends(get_db)):
 
     from models.server import Server
     server = db.query(Server).filter(
-        Server.id == server_id,
+        Server.server_id == server_id,
         Server.platform == platform
     ).first()
 
@@ -113,7 +113,7 @@ async def explain_more(request: ExtraExplainRequest, db: Session = Depends(get_d
 
     from models.server import Server
     server = db.query(Server).filter(
-        Server.id == server_id,
+        Server.server_id == server_id,
         Server.platform == platform
     ).first()
 
