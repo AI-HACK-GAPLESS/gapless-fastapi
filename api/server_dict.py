@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.post("/register_dict_entries")
 async def register_dict_entries(request: DictBatchRequest, db: Session = Depends(get_db)):
-    server = db.query(Server).filter(Server.id == request.server_id, Server.platform == request.platform).first()
+    server = db.query(Server).filter(Server.server_id == request.server_id, Server.platform == request.platform).first()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
 
@@ -27,8 +27,8 @@ async def register_dict_entries(request: DictBatchRequest, db: Session = Depends
     return {"message": f"Successfully added {count} entries."}
 
 @router.get("/get_dict_entries")
-async def get_dict_entries(server_id: int, platform: str, db: Session = Depends(get_db)):
-    server = db.query(Server).filter(Server.id == server_id, Server.platform == platform).first()
+async def get_dict_entries(server_id: str, platform: str, db: Session = Depends(get_db)):
+    server = db.query(Server).filter(Server.server_id == server_id, Server.platform == platform).first()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
 
@@ -38,7 +38,7 @@ async def get_dict_entries(server_id: int, platform: str, db: Session = Depends(
 @router.put("/update_dict_entries")
 async def update_dict_entries(request: DictUpdateRequest, db: Session = Depends(get_db)):
     server = db.query(Server).filter(
-        Server.id == request.server_id,
+        Server.server_id == request.server_id,
         Server.platform == request.platform
     ).first()
     if not server:
@@ -60,7 +60,7 @@ async def update_dict_entries(request: DictUpdateRequest, db: Session = Depends(
 
 @router.delete("/delete_dict_entries")
 async def delete_dict_entries(request: DictDeleteRequest, db: Session = Depends(get_db)):
-    server = db.query(Server).filter(Server.id == request.server_id, Server.platform == request.platform).first()
+    server = db.query(Server).filter(Server.server_id == request.server_id, Server.platform == request.platform).first()
     if not server:
         raise HTTPException(status_code=404, detail="Server not found")
 

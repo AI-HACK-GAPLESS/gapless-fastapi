@@ -10,7 +10,7 @@ class DictEntry(BaseModel):
     description: str
 
 class DictBatchRequest(BaseModel):
-    server_id: int
+    server_id: str
     platform: Literal["discord", "slack"]
     entries: List[DictEntry]
 
@@ -20,11 +20,11 @@ class DictUpdateEntry(BaseModel):
     description: str
 
 class DictUpdateRequest(BaseModel):
-    server_id: int
+    server_id: str
     platform: Literal["discord", "slack"]
     entries: List[DictUpdateEntry]
 
 class DictDeleteRequest(BaseModel):
-    server_id: int
+    server_id: str
     platform: Literal["discord", "slack"]
     ids: List[int]
