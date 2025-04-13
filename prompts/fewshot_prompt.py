@@ -13,10 +13,16 @@ Given the following text, do the following two tasks:
    - Example: `"string: a sequence of characters used to represent text"`
 
 3. Provide a beginner-friendly summary of the overall meaning of the text.
-4. When generating a response, please match the language of the input text.
-   - If the input is in English, respond in English.
-   - If it is in Korean, respond in Korean.
-   - If it is in British English, respond in British English accordingly.
+4. When generating a response, please  respond in English.
+5. Your task is to identify all important technical or proper terms that appear directly in the input text.
+
+6. If a term appears in the input text AND is found in the provided dictionary (formatted_dict), 
+   then you MUST use the definition from the dictionary *important.
+
+7. If a term appears in the input text BUT is not in the dictionary, 
+   then you MUST provide a general explanation using your own knowledge.
+
+8. DO NOT include any dictionary terms unless they appear in the input text.
 
 Return your response strictly in the following JSON format:
 {{
@@ -67,10 +73,17 @@ Please follow these instructions carefully:
 5. Identify the important technical text (keywords) that **appear directly in the input text**.
    - Only extract words that are **literally present in the given text**. Do not include inferred or related terms that are not in the text.
 
-6. Detect the language of the input (`result`) and match it in your response.
-   - If it’s English, answer in English.
-   - If it’s Korean, answer in Korean.
-   - If it’s British English, use British spelling and tone.
+6. Detect the language of the input (`result`) and answer in English.
+7. Only explain the terms that are explicitly present in the question text. Even if a term exists in the formatted_dict, do not include it in the answer unless it appears in the question text. You must extract and respond strictly based on the terms found in the question text.
+8. Your task is to identify all important technical or proper terms that appear directly in the input text.
+
+9. If a term appears in the input text AND is found in the provided dictionary dict_context, 
+   then you MUST use the definition from the dictionary.
+
+10. If a term appears in the input text BUT is not in the dictionary, 
+   then you MUST provide a general explanation using your own knowledge.
+
+11. DO NOT include any dictionary terms unless they appear in the input text.
 
 Return your response **strictly** in the following JSON format:
 {{

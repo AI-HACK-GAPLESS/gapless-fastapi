@@ -60,7 +60,7 @@ async def explain_text(request: ExplainRequest, db: Session = Depends(get_db)):
         # 서버가 등록된 경우: 해당 서버 사전 정보 포함
         dict_entries = db.query(Dict).filter(Dict.server_id == server.id).all()
         formatted_dict = "\n".join([f"{entry.keyword}: {entry.description}" for entry in dict_entries])
-
+        print(formatted_dict)
         # 프롬프트 생성
         prompt = get_explain_prompt(text) + f"\n\n[Please refer to it unconditionally]\n{formatted_dict}"
 
